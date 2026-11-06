@@ -1,0 +1,7 @@
+# Cloudflare Worker for the public ENTROTOPIA landing page.
+# Keep this name the same as the Cloudflare Worker project name.
+name = "entrotopia"
+compatibility_date = "2026-11-06"
+
+[assets]
+directory = "./public"
