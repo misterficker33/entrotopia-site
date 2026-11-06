@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="ENTROTOPIA Labs entwickelt und testet Ideen aus Software, KI, Spielen, Web und weiteren Bereichen.">
+  <meta name="robots" content="noindex,nofollow">
+  <title>ENTROTOPIA · Unabhängiges Experimentierlabor</title>
+  <style>
+    :root{color-scheme:dark;font-family:Inter,ui-sans-serif,system-ui,sans-serif;--bg:#0b1220;--panel:#111d31;--line:#2b4163;--text:#f7f9ff;--muted:#b8c5da;--gold:#f4b860;--accent:#a7c0ff}*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 78% 3%,#293e6b 0,var(--bg) 38%);color:var(--text);line-height:1.55}.nav,main,footer{width:min(1120px,calc(100% - 40px));margin:auto}.nav{display:flex;justify-content:space-between;align-items:center;height:78px;border-bottom:1px solid var(--line);font-size:14px;color:var(--muted)}.brand{font-weight:900;letter-spacing:.15em;color:var(--text)}.hero{padding:92px 0 72px;display:grid;grid-template-columns:1.2fr .8fr;gap:52px;align-items:center}.eyebrow{font-size:12px;font-weight:900;letter-spacing:.15em;color:var(--gold)}h1{font-size:clamp(44px,7vw,79px);letter-spacing:-.055em;line-height:1.02;margin:15px 0 21px}h1 span{color:var(--accent)}.lead{font-size:clamp(18px,2.4vw,23px);color:var(--muted);max-width:650px}.notice{margin-top:30px;padding:16px 18px;border:1px solid #705d39;border-radius:12px;background:#2b2518;color:#f6ddb0;font-size:14px}.product{border:1px solid var(--line);border-radius:20px;padding:28px;background:#101b2dd9;box-shadow:0 28px 70px #0008}.product h2{font-size:25px;margin:0 0 14px}.product p{color:var(--muted)}.product ul{padding-left:19px;color:var(--muted)}button{width:100%;margin-top:18px;border:0;border-radius:10px;padding:15px;background:#5c687b;color:#dae1ed;font-weight:850;cursor:not-allowed}.small{font-size:13px;color:#9cabc2;text-align:center;margin:13px 0 0}.section{padding:68px 0;border-top:1px solid var(--line)}h3{font-size:clamp(29px,4vw,44px);line-height:1.15;margin:7px 0 31px}.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px}.card b{font-size:17px}.card p{color:var(--muted);font-size:14px;margin-bottom:0}.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}.step{padding:18px;border-left:2px solid var(--gold);background:#101b2d}.step span{font-size:12px;color:var(--gold);font-weight:900;letter-spacing:.12em}.step p{color:var(--muted);margin-bottom:0}footer{padding:44px 0 60px;color:#91a2bd;font-size:14px}footer a{color:#bdceff}@media(max-width:760px){.nav span{display:none}.hero{grid-template-columns:1fr;padding-top:62px}.cards,.steps{grid-template-columns:1fr}.product{max-width:520px}h1{font-size:51px}}
+
+    html{scroll-behavior:smooth}
+    .nav{gap:18px}.navlinks{display:flex;gap:18px;align-items:center}.navlinks a{color:var(--muted);text-decoration:none;font-weight:700}.navlinks a:hover{color:var(--text)}
+    .labhero{padding:88px 0 58px;display:grid;grid-template-columns:1.35fr .65fr;gap:32px;align-items:center}
+    .labhero h1{font-size:clamp(42px,6.5vw,76px)}.labhero .lead{max-width:720px}
+    .labbox{border:1px solid var(--line);border-radius:20px;padding:26px;background:linear-gradient(155deg,#1a2a45,#101b2d)}
+    .labbox b{font-size:22px}.labbox p,.subtext{color:var(--muted)}.labbox small{color:var(--gold);letter-spacing:.10em}
+    .tagline{display:flex;flex-wrap:wrap;gap:9px;margin:23px 0}.tag{border:1px solid #38506f;border-radius:999px;padding:7px 11px;color:#d0dff9;font-size:12px;font-weight:700}
+    .section-intro{max-width:750px;color:var(--muted);font-size:17px;margin-top:-16px;margin-bottom:28px}
+    .projectgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+    .project{border:1px solid var(--line);border-radius:15px;padding:24px;background:var(--panel);display:flex;flex-direction:column;gap:10px}
+    .project h4{font-size:20px;margin:0}.project p{color:var(--muted);margin:0;flex-grow:1}
+    .status{font-size:11px;font-weight:900;letter-spacing:.10em;color:var(--gold)}
+    .project a{color:#d3dfff;font-weight:700;text-decoration:underline;text-underline-offset:3px}
+    .introline{padding:15px 20px;border-radius:12px;background:#15263d;border:1px solid var(--line);color:#ccd9ee}
+    .corebox{padding:30px;border-radius:18px;background:linear-gradient(125deg,#172942,#111b2e);border:1px solid #395277}
+    .corebox p{max-width:750px;color:var(--muted)}
+    @media(max-width:760px){.nav{height:auto;padding:19px 0;flex-wrap:wrap}.nav span{display:none}.navlinks{width:100%;flex-wrap:wrap;gap:11px}.labhero{grid-template-columns:1fr;padding:54px 0 35px}.labhero h1{font-size:44px}.projectgrid{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <header class="nav"><div class="brand">ENTROTOPIA</div><nav class="navlinks" aria-label="Hauptnavigation"><a href="#portfolio">Experimente</a><a href="#handwerker">Erstes Produkt</a><a href="#core">Core</a></nav><span>Independent Experimental Lab</span></header>
+  <main>
+<section class="labhero" id="lab">
+  <div><div class="eyebrow">ENTROTOPIA LABS · PRIVATES ENTWICKLUNGSPROJEKT</div>
+    <h1>Ideen entwickeln.<br><span>Grenzen testen.</span></h1>
+    <p class="lead">Ein unabhängiges Experimentierlabor für Software, KI, Spiele, Websites, digitale Werkzeuge und Produktkonzepte. Viele kleine Ideen, schnelle Prototypen und ehrliches Feedback statt großer Versprechen.</p>
+    <div class="tagline"><span class="tag">Software &amp; KI</span><span class="tag">Games</span><span class="tag">Web</span><span class="tag">Digitale Vorlagen</span><span class="tag">Produktideen</span></div>
+    <p class="introline">Aktuell in der kostenlosen Test- und Entwicklungsphase. Kein Shop, keine Bestellungen und keine Zahlung.</p>
+  </div>
+  <aside class="labbox"><small>DIE METHODE</small><h2>Experimentieren statt behaupten.</h2>
+    <p><b>01.</b> Idee auswählen</p><p><b>02.</b> Kleinen Prototyp bauen</p><p><b>03.</b> Kostenlos testen und Rückmeldungen sammeln</p><p><b>04.</b> Lernen, verbessern oder verwerfen</p>
+  </aside>
+</section>
+<section class="section" id="portfolio"><div class="eyebrow">EXPERIMENT-PORTFOLIO</div><h3>Viele Ideen. Ein gemeinsames Labor.</h3>
+<p class="section-intro">Das Handwerker-Anfragen-Set ist bereits als Konzept beschrieben. Weitere Bereiche sind ausdrücklich Ideen und keine fertigen oder käuflichen Produkte.</p>
+<div class="projectgrid">
+<article class="project"><span class="status">EXPERIMENT 001 · VORABANSICHT</span><h4>Handwerker-Anfragen-Set</h4><p>Lokale Vorlagen, um Kundenanfragen, Rückrufe und Angebote übersichtlich zu organisieren.</p><a href="#handwerker">Konzept ansehen</a></article>
+<article class="project"><span class="status">IDEENPOOL</span><h4>KI &amp; Software</h4><p>Kleine Werkzeuge und Automatisierungen für konkrete Probleme.</p></article>
+<article class="project"><span class="status">IDEENPOOL</span><h4>Spiele &amp; Interaktion</h4><p>Spielmechaniken, Prototypen und ungewöhnliche Experimente.</p></article>
+<article class="project"><span class="status">IDEENPOOL</span><h4>Web &amp; Plattformen</h4><p>Neue digitale Konzepte und einfache Anwendungen.</p></article>
+<article class="project"><span class="status">IDEENPOOL</span><h4>Digitale Dienstleistungen</h4><p>Ansätze für Arbeitsabläufe, Vorlagen und nützliche Services.</p></article>
+<article class="project"><span class="status">IDEENPOOL</span><h4>Physische Produktideen</h4><p>Konzepte werden zunächst ohne Herstellung oder Verkauf auf Nachfrage geprüft.</p></article>
+</div></section>
+    <section class="hero" id="handwerker">
+      <div>
+        <div class="eyebrow">EXPERIMENT 001 · PRODUKT-VORABANSICHT</div>
+        <h1>Weniger Zettel.<br><span>Mehr Überblick.</span></h1>
+        <p class="lead">Das Handwerker-Anfragen-Set bringt Kundenanfragen, Rückrufe und Angebote in einen einfachen lokalen Ablauf.</p>
+        <div class="notice"><b>Privater Prototyp in Vorbereitung.</b> Derzeit nur Konzept und kostenlose Erprobung. Keine Bestellungen, Verkäufe oder Zahlungen.</div>
+      </div>
+      <aside class="product">
+        <div class="eyebrow">ENTHÄLT 8 DATEIEN</div>
+        <h2>Handwerker-Anfragen-Set</h2>
+        <p>Lokale Vorlagen für kleine Betriebe, die Anfragen nicht in Chats und Notizzetteln verlieren wollen.</p>
+        <ul><li>Kundenanfragen und Status</li><li>Rückrufe und Termine</li><li>Angebote nachverfolgen</li><li>Wochenübersicht und Antwortbausteine</li></ul>
+        <button disabled aria-disabled="true">Prototyp noch nicht verfügbar</button>
+        <p class="small">Kein Warenkorb · keine Zahlungen · noch kein Download</p>
+      </aside>
+    </section>
+    <section class="section">
+      <div class="eyebrow">FÜR DEN ALLTAG</div>
+      <h3>Ein kleiner Ablauf für den ersten Überblick.</h3>
+      <div class="cards"><article class="card"><b>Anfragen erfassen</b><p>Eingang, Frist, Zuständigkeit und nächster Schritt in einer Tabelle.</p></article><article class="card"><b>Rückrufe planen</b><p>Wen anrufen, wann und was danach offen bleibt.</p></article><article class="card"><b>Angebote verfolgen</b><p>Wert, Ablaufdatum und Nachfassen nachvollziehbar festhalten.</p></article><article class="card"><b>Lokal arbeiten</b><p>CSV-Dateien für LibreOffice Calc oder Microsoft Excel, ohne Cloudpflicht.</p></article></div>
+    </section>
+    <section class="section">
+      <div class="eyebrow">KOSTENLOSE TESTPHASE</div>
+      <div class="steps"><article class="step"><span>01</span><b>Konzept ansehen</b><p>Die geplanten Inhalte und Einsatzmöglichkeiten kennenlernen.</p></article><article class="step"><span>02</span><b>Prototyp testen</b><p>Wenn eine Testversion verfügbar ist, kostenlos ausprobieren.</p></article><article class="step"><span>03</span><b>Rückmeldung geben</b><p>Stärken, Schwächen und neue Ideen sammeln.</p></article></div>
+    </section>
+    <section class="section" id="core"><div class="eyebrow">LANGFRISTIGE VISION</div><h3>ENTROTOPIA Core</h3><div class="corebox"><h2>Forschung an kooperierenden KI-Agenten</h2><p>Eine langfristige Forschungsrichtung: Mehrere spezialisierte KI-Einheiten unterstützen Planung, Entwicklung, Wissensaufbau und Auswertung. Menschliche Freigabe bleibt für externe Aktionen erforderlich. Noch kein autonomes System im öffentlichen Betrieb.</p><p>ENTROTOPIA Labs und der Forschungsprototyp bleiben unterschiedliche Projektbereiche unter einer gemeinsamen Identität.</p></div></section>
+  </main>
+  <footer><b>ENTROTOPIA</b><p>Privates Entwicklungsprojekt · Noch kein kommerzieller Betrieb · Kontakt: <a href="mailto:kontakt@entrotopia.de">kontakt@entrotopia.de</a></p></footer>
+</body>
+</html>
