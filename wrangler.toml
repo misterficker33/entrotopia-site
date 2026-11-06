@@ -5,3 +5,10 @@ compatibility_date = "2026-11-06"
 
 [assets]
 directory = "./public"
+
+# D1 connection. The current public site remains static until the backend is deployed.
+[[d1_databases]]
+binding = "DB"
+database_name = "entrotopia-db"
+database_id = "5389b572-10f5-4ee2-9cac-f99d199280bc"
+migrations_dir = "migrations"
