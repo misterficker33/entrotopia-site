@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta name="description" content="ENTROTOPIA Anfrageboard: Interessenten, Rückrufe, Angebote und nächste Schritte lokal im Browser verwalten.">
+  <meta name="robots" content="noindex,nofollow">
+  <title>Anfrageboard Beta | ENTROTOPIA</title>
+  <link rel="stylesheet" href="app.css">
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/">ENTROTOPIA</a>
+    <div class="toplinks"><a href="testphase.html">Vorlagen</a><span class="badge">BETA 0.2</span></div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div>
+        <p class="eyebrow">EXPERIMENT 001 · LOKALES ANFRAGEBOARD</p>
+        <h1>Anfragen im Blick.<br><span>Nächsten Schritt kennen.</span></h1>
+        <p class="lead">Interessenten, Rückrufe und Angebote in einer einfachen Übersicht. Ohne Konto und ohne Cloud.</p>
+      </div>
+      <div class="privacy-note"><strong>Deine Daten bleiben hier.</strong><br>Die Einträge werden nur im Speicher dieses Browsers abgelegt. Nutze regelmäßig die Sicherung.</div>
+    </section>
+
+    <section class="metrics" aria-label="Übersicht">
+      <article><span>Offene Vorgänge</span><strong id="metric-open">0</strong></article>
+      <article><span>Heute fällig</span><strong id="metric-due">0</strong></article>
+      <article><span>Offener Wert</span><strong id="metric-value">0 €</strong></article>
+      <article><span>Gewonnen</span><strong id="metric-won">0 €</strong></article>
+    </section>
+
+    <section class="workspace">
+      <aside class="editor" id="editor">
+        <div class="section-head">
+          <div><p class="eyebrow">ERFASSEN</p><h2 id="form-title">Interessent anlegen</h2></div>
+          <button id="cancel-edit" class="text-button hidden" type="button">Abbrechen</button>
+        </div>
+        <form id="lead-form">
+          <input id="lead-id" type="hidden">
+          <label>Name oder Firma *<input id="name" name="name" maxlength="100" required placeholder="z. B. Musterbetrieb GmbH" autocomplete="organization"></label>
+          <div class="two-cols">
+            <label>Kontaktkanal
+              <select id="channel" name="channel">
+                <option value="Telefon">Telefon</option><option value="E-Mail">E-Mail</option><option value="WhatsApp">WhatsApp</option><option value="Webformular">Webformular</option><option value="Social Media">Social Media</option><option value="Persönlich">Persönlich</option><option value="Sonstiges">Sonstiges</option>
+              </select>
+            </label>
+            <label>Kontakt<input id="contact" name="contact" maxlength="140" placeholder="Nummer, Adresse oder Profil"></label>
+          </div>
+          <div class="two-cols">
+            <label>Status
+              <select id="status" name="status">
+                <option value="new">Neu</option><option value="callback">Rückruf</option><option value="quote">Angebot</option><option value="won">Auftrag</option><option value="done">Abgeschlossen</option><option value="lost">Abgesagt</option>
+              </select>
+            </label>
+            <label>Wiedervorlage<input id="follow-up" name="followUp" type="date"></label>
+          </div>
+          <label>Geschätzter Wert in Euro<input id="value" name="value" type="number" min="0" max="99999999" step="0.01" inputmode="decimal" placeholder="0,00"></label>
+          <label>Notiz<textarea id="note" name="note" maxlength="1000" rows="5" placeholder="Worum geht es? Was ist der nächste Schritt?"></textarea><small><span id="note-count">0</span>/1000 Zeichen</small></label>
+          <button class="primary" type="submit" id="save-button">Interessent speichern</button>
+        </form>
+      </aside>
+
+      <section class="board">
+        <div class="section-head board-head">
+          <div><p class="eyebrow">ARBEITSÜBERSICHT</p><h2>Alle Vorgänge</h2></div>
+          <span id="result-count" class="count">0 Einträge</span>
+        </div>
+        <div class="toolbar">
+          <label class="search"><span class="sr-only">Suchen</span><input id="search" type="search" placeholder="Name, Kontakt oder Notiz suchen"></label>
+          <label><span class="sr-only">Status filtern</span><select id="filter-status"><option value="all">Alle Status</option><option value="open">Nur offen</option><option value="due">Heute fällig</option><option value="new">Neu</option><option value="callback">Rückruf</option><option value="quote">Angebot</option><option value="won">Auftrag</option><option value="done">Abgeschlossen</option><option value="lost">Abgesagt</option></select></label>
+          <label><span class="sr-only">Sortierung</span><select id="sort"><option value="updated">Zuletzt geändert</option><option value="followUp">Nächste Wiedervorlage</option><option value="value">Höchster Wert</option><option value="name">Name A–Z</option></select></label>
+        </div>
+        <div id="lead-list" class="lead-list" aria-live="polite"></div>
+        <div id="empty-state" class="empty hidden"><strong>Noch keine Interessenten.</strong><p>Lege links den ersten Vorgang an oder lade harmlose Beispieldaten.</p><button id="load-demo" class="secondary" type="button">Beispieldaten laden</button></div>
+      </section>
+    </section>
+
+    <section class="data-tools">
+      <div><p class="eyebrow">DATENSICHERUNG</p><h2>Daten selbst kontrollieren</h2><p>CSV eignet sich für Excel und LibreOffice. Die JSON-Sicherung kann später wieder in dieses Anfrageboard eingelesen werden.</p></div>
+      <div class="tool-buttons">
+        <button id="export-csv" class="secondary" type="button">CSV exportieren</button>
+        <button id="export-json" class="secondary" type="button">Sicherung herunterladen</button>
+        <label class="file-button">Sicherung einlesen<input id="import-json" type="file" accept="application/json,.json"></label>
+      </div>
+    </section>
+  </main>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <footer><a href="/">ENTROTOPIA Labs</a><span>Kostenlose Beta · kein Verkauf · keine Cloud-Synchronisierung</span><a href="mailto:kontakt@entrotopia.de?subject=Feedback%20Anfrageboard%20Beta">Feedback senden</a></footer>
+</body>
+</html>
