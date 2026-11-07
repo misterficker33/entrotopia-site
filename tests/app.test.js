@@ -1,6 +1,6 @@
 'use strict';
 const assert = require('node:assert/strict');
-const { normalizeLead, stats, filterLeads, sortLeads, toCsv, riskFor, prioritizeRisks, followUpMessage } = require('../public/app.js');
+const { normalizeLead, stats, filterLeads, sortLeads, toCsv, riskFor, prioritizeRisks, followUpMessage, snoozeLead } = require('../public/app.js');
 
 const leads = [
   normalizeLead({ id: '1', name: 'Alpha', status: 'new', followUp: '2026-11-07', value: '1250,50', note: 'Fenster' }),
@@ -19,6 +19,11 @@ const riskyQuote = normalizeLead({ id: '4', name: 'Delta', status: 'quote', foll
 assert.deepEqual(riskFor(riskyQuote, '2026-11-07'), { score: 89, level: 'high', reason: 'Seit gestern überfällig · Offenes Angebot', action: 'Angebot nachfassen' });
 assert.deepEqual(prioritizeRisks([...leads, riskyQuote], '2026-11-07').map(entry => entry.item.id), ['4', '1']);
 assert.match(followUpMessage(riskyQuote), /Angebot/);
+const snoozed = snoozeLead(riskyQuote, '2026-11-07', 3, '2026-11-07T12:00:00.000Z');
+assert.equal(snoozed.followUp, '2026-11-10');
+assert.equal(snoozed.activityCount, 1);
+assert.equal(snoozed.lastActionAt, '2026-11-07T12:00:00.000Z');
+assert.equal(riskFor(snoozed, '2026-11-07').score, 35);
 assert.match(toCsv(leads), /"Alpha"/);
 assert.match(toCsv([normalizeLead({ name: 'A;B', note: 'Er sagt "ja"' })]), /"Er sagt ""ja"""/);
 console.log('app tests: ok');

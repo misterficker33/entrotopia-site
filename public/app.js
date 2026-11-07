@@ -27,6 +27,8 @@
       followUp: /^\d{4}-\d{2}-\d{2}$/.test(input?.followUp || '') ? input.followUp : '',
       value: cleanMoney(input?.value),
       note: cleanText(input?.note, 1000),
+      lastActionAt: cleanText(input?.lastActionAt, 40),
+      activityCount: Math.max(0, Math.floor(Number(input?.activityCount) || 0)),
       createdAt: cleanText(input?.createdAt, 40) || now,
       updatedAt: cleanText(input?.updatedAt, 40) || now
     };
@@ -40,6 +42,14 @@
   function dayNumber(value) {
     const [year, month, day] = String(value).split('-').map(Number);
     return Number.isFinite(year + month + day) ? Date.UTC(year, month - 1, day) / 86400000 : 0;
+  }
+  function addDaysLocal(value, days) {
+    const [year, month, day] = String(value).split('-').map(Number);
+    const date = new Date(year, month - 1, day + days);
+    return todayLocal(date);
+  }
+  function snoozeLead(item, today = todayLocal(), days = 3, now = new Date().toISOString()) {
+    return normalizeLead({ ...item, followUp: addDaysLocal(today, days), lastActionAt: now, activityCount: (item.activityCount || 0) + 1, updatedAt: now });
   }
   function riskFor(item, today = todayLocal()) {
     if (!['new', 'callback', 'quote'].includes(item.status)) return { score: 0, level: 'none', reason: '', action: '' };
@@ -104,12 +114,12 @@
   }
   function csvCell(value) { return `"${String(value ?? '').replaceAll('"', '""')}"`; }
   function toCsv(leads) {
-    const headings = ['ID', 'Name/Firma', 'Kontaktkanal', 'Kontakt', 'Status', 'Wiedervorlage', 'Wert EUR', 'Notiz', 'Erstellt', 'Geändert'];
-    const rows = leads.map(item => [item.id, item.name, item.channel, item.contact, STATUSES[item.status], item.followUp, item.value.toFixed(2), item.note, item.createdAt, item.updatedAt]);
+    const headings = ['ID', 'Name/Firma', 'Kontaktkanal', 'Kontakt', 'Status', 'Wiedervorlage', 'Wert EUR', 'Notiz', 'Nachfassaktionen', 'Letzte Aktion', 'Erstellt', 'Geändert'];
+    const rows = leads.map(item => [item.id, item.name, item.channel, item.contact, STATUSES[item.status], item.followUp, item.value.toFixed(2), item.note, item.activityCount, item.lastActionAt, item.createdAt, item.updatedAt]);
     return '\ufeff' + [headings, ...rows].map(row => row.map(csvCell).join(';')).join('\r\n');
   }
 
-  const api = { normalizeLead, todayLocal, stats, filterLeads, sortLeads, csvCell, toCsv, riskFor, prioritizeRisks, followUpMessage, STATUSES };
+  const api = { normalizeLead, todayLocal, stats, filterLeads, sortLeads, csvCell, toCsv, riskFor, prioritizeRisks, followUpMessage, snoozeLead, STATUSES };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   if (typeof document === 'undefined') return;
 
@@ -172,8 +182,9 @@
     const action = document.createElement('p'); action.className = 'risk-action'; action.textContent = `Nächster Schritt: ${risk.action}`;
     const buttons = document.createElement('div'); buttons.className = 'risk-buttons';
     const copy = document.createElement('button'); copy.type = 'button'; copy.textContent = 'Text kopieren'; copy.addEventListener('click', () => copyFollowUp(item));
+    const done = document.createElement('button'); done.type = 'button'; done.className = 'done-action'; done.textContent = 'Nachgefasst · +3 Tage'; done.addEventListener('click', () => recordFollowUp(item));
     const open = document.createElement('button'); open.type = 'button'; open.textContent = 'Öffnen'; open.addEventListener('click', () => beginEdit(item));
-    buttons.append(copy, open); article.append(top, reason, action, buttons); return article;
+    buttons.append(copy, done, open); article.append(top, reason, action, buttons); return article;
   }
   function card(item) {
     const article = document.createElement('article'); article.className = 'lead-card';
@@ -190,6 +201,7 @@
     const meta = document.createElement('div'); meta.className = 'lead-meta';
     if (item.followUp) { const due = document.createElement('span'); const today = todayLocal(); due.className = item.followUp < today && !CLOSED.has(item.status) ? 'overdue' : item.followUp === today && !CLOSED.has(item.status) ? 'due' : ''; due.textContent = `Wiedervorlage: ${safeDate(item.followUp)}`; meta.append(due); }
     if (item.value) { const value = document.createElement('span'); value.textContent = `Wert: ${money.format(item.value)}`; meta.append(value); }
+    if (item.activityCount) { const activity = document.createElement('span'); activity.textContent = `Nachgefasst: ${item.activityCount}×`; meta.append(activity); }
     main.append(meta);
     const actions = document.createElement('div'); actions.className = 'card-actions';
     const edit = document.createElement('button'); edit.className = 'icon-button'; edit.type = 'button'; edit.textContent = 'Bearbeiten'; edit.addEventListener('click', () => beginEdit(item));
@@ -220,6 +232,12 @@
       toast('Nachfass-Text wurde kopiert.');
     } catch { toast('Text konnte nicht kopiert werden.', true); }
   }
+  function recordFollowUp(item) {
+    const updated = snoozeLead(item);
+    leads = leads.map(entry => entry.id === item.id ? updated : entry);
+    save();
+    toast(`Nachfassen verbucht. Neue Wiedervorlage: ${safeDate(updated.followUp)}.`);
+  }
   function backupName(extension) { return `entrotopia-anfragen-${todayLocal()}.${extension}`; }
   function updateNoteCount() { el('note-count').textContent = el('note').value.length; }
   function updateConnection() {
@@ -231,7 +249,7 @@
   el('lead-form').addEventListener('submit', event => {
     event.preventDefault();
     const id = el('lead-id').value; const existing = leads.find(item => item.id === id); const now = new Date().toISOString();
-    const item = normalizeLead({ id, name: el('name').value, channel: el('channel').value, contact: el('contact').value, status: el('status').value, followUp: el('follow-up').value, value: el('value').value, note: el('note').value, createdAt: existing?.createdAt || now, updatedAt: now });
+    const item = normalizeLead({ id, name: el('name').value, channel: el('channel').value, contact: el('contact').value, status: el('status').value, followUp: el('follow-up').value, value: el('value').value, note: el('note').value, lastActionAt: existing?.lastActionAt, activityCount: existing?.activityCount, createdAt: existing?.createdAt || now, updatedAt: now });
     if (!item.name) { toast('Bitte Name oder Firma eintragen.', true); return; }
     if (existing) leads = leads.map(entry => entry.id === id ? item : entry); else leads.unshift(item);
     save(); resetForm(); toast(existing ? 'Änderungen gespeichert.' : 'Interessent angelegt.');

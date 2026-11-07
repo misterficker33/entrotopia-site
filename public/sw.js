@@ -1,6 +1,6 @@
 'use strict';
 
-const CACHE = 'entrotopia-anfrageboard-v2';
+const CACHE = 'entrotopia-anfrageboard-v3';
 const CORE = ['./app.html', './app.css', './app-pwa.css', './app.js', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', event => {
