@@ -37,6 +37,42 @@
     const d = String(date.getDate()).padStart(2, '0');
     return `${y}-${m}-${d}`;
   }
+  function dayNumber(value) {
+    const [year, month, day] = String(value).split('-').map(Number);
+    return Number.isFinite(year + month + day) ? Date.UTC(year, month - 1, day) / 86400000 : 0;
+  }
+  function riskFor(item, today = todayLocal()) {
+    if (!['new', 'callback', 'quote'].includes(item.status)) return { score: 0, level: 'none', reason: '', action: '' };
+    let score = 0;
+    const reasons = [];
+    if (!item.followUp) {
+      score += 25; reasons.push('Keine Wiedervorlage gesetzt');
+    } else {
+      const overdue = dayNumber(today) - dayNumber(item.followUp);
+      if (overdue > 0) { score += 50 + Math.min(20, overdue * 4); reasons.push(overdue === 1 ? 'Seit gestern überfällig' : `Seit ${overdue} Tagen überfällig`); }
+      else if (overdue === 0) { score += 40; reasons.push('Heute fällig'); }
+      else if (overdue >= -2) { score += 15; reasons.push('In Kürze fällig'); }
+    }
+    if (item.status === 'quote') { score += 25; reasons.push('Offenes Angebot'); }
+    if (item.status === 'callback') { score += 15; reasons.push('Rückruf offen'); }
+    if (item.status === 'new') score += 5;
+    if (item.value >= 1000) score += 10;
+    if (item.value >= 5000) score += 10;
+    score = Math.min(100, score);
+    const action = item.status === 'quote' ? 'Angebot nachfassen' : item.status === 'callback' ? 'Rückruf erledigen' : 'Erstkontakt aufnehmen';
+    return { score, level: score >= 70 ? 'high' : score >= 40 ? 'medium' : 'low', reason: reasons.slice(0, 2).join(' · '), action };
+  }
+  function prioritizeRisks(leads, today = todayLocal()) {
+    return leads.map(item => ({ item, risk: riskFor(item, today) }))
+      .filter(entry => entry.risk.score >= 40)
+      .sort((a, b) => b.risk.score - a.risk.score || b.item.value - a.item.value);
+  }
+  function followUpMessage(item) {
+    if (item.status === 'quote') return 'Guten Tag, ich wollte kurz nachfragen, ob zu unserem Angebot noch Fragen offen sind. Gerne klären wir die nächsten Schritte.';
+    if (item.status === 'callback') return 'Guten Tag, ich melde mich wie besprochen zu Ihrer Anfrage. Wann passt Ihnen ein kurzer Rückruf?';
+    if (item.status === 'won') return 'Guten Tag, vielen Dank für Ihren Auftrag. Wir melden uns zur Abstimmung des nächsten Termins.';
+    return 'Guten Tag, vielen Dank für Ihre Anfrage. Wir prüfen Ihr Anliegen und melden uns zeitnah bei Ihnen.';
+  }
   function stats(leads, today = todayLocal()) {
     const open = leads.filter(item => !CLOSED.has(item.status));
     return {
@@ -52,6 +88,7 @@
       const text = `${item.name} ${item.channel} ${item.contact} ${item.note}`.toLocaleLowerCase('de');
       if (needle && !text.includes(needle)) return false;
       if (status === 'all') return true;
+      if (status === 'risk') return riskFor(item, today).score >= 40;
       if (status === 'open') return !CLOSED.has(item.status);
       if (status === 'due') return !CLOSED.has(item.status) && item.followUp && item.followUp <= today;
       return item.status === status;
@@ -59,6 +96,7 @@
   }
   function sortLeads(leads, mode) {
     const result = [...leads];
+    if (mode === 'risk') return result.sort((a, b) => riskFor(b).score - riskFor(a).score || b.value - a.value);
     if (mode === 'followUp') return result.sort((a, b) => (a.followUp || '9999').localeCompare(b.followUp || '9999'));
     if (mode === 'value') return result.sort((a, b) => b.value - a.value);
     if (mode === 'name') return result.sort((a, b) => a.name.localeCompare(b.name, 'de'));
@@ -71,7 +109,7 @@
     return '\ufeff' + [headings, ...rows].map(row => row.map(csvCell).join(';')).join('\r\n');
   }
 
-  const api = { normalizeLead, todayLocal, stats, filterLeads, sortLeads, csvCell, toCsv, STATUSES };
+  const api = { normalizeLead, todayLocal, stats, filterLeads, sortLeads, csvCell, toCsv, riskFor, prioritizeRisks, followUpMessage, STATUSES };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   if (typeof document === 'undefined') return;
 
@@ -107,6 +145,7 @@
     el('metric-due').textContent = totals.due;
     el('metric-value').textContent = money.format(totals.value);
     el('metric-won').textContent = money.format(totals.won);
+    renderRisks();
     const visible = sortLeads(filterLeads(leads, el('search').value, el('filter-status').value), el('sort').value);
     el('result-count').textContent = `${visible.length} ${visible.length === 1 ? 'Eintrag' : 'Einträge'}`;
     el('lead-list').replaceChildren(...visible.map(card));
@@ -115,13 +154,37 @@
       const empty = document.createElement('div'); empty.className = 'empty'; empty.innerHTML = '<strong>Keine Treffer.</strong><p>Ändere Suche oder Filter.</p>'; el('lead-list').append(empty);
     }
   }
+  function renderRisks() {
+    const entries = prioritizeRisks(leads);
+    const endangered = entries.reduce((sum, entry) => sum + entry.item.value, 0);
+    el('risk-value').textContent = money.format(endangered);
+    el('risk-summary').textContent = entries.length ? `${entries.length} ${entries.length === 1 ? 'Vorgang braucht' : 'Vorgänge brauchen'} jetzt Aufmerksamkeit.` : 'Noch keine gefährdeten Vorgänge.';
+    el('risk-list').replaceChildren(...entries.slice(0, 3).map(riskCard));
+    el('risk-empty').classList.toggle('hidden', entries.length !== 0);
+  }
+  function riskCard({ item, risk }) {
+    const article = document.createElement('article'); article.className = 'risk-item';
+    const top = document.createElement('div'); top.className = 'risk-top';
+    const name = document.createElement('strong'); name.textContent = item.name;
+    const level = document.createElement('span'); level.className = `risk-level ${risk.level}`; level.textContent = risk.level === 'high' ? 'HOCH' : 'ACHTUNG';
+    top.append(name, level);
+    const reason = document.createElement('p'); reason.className = 'risk-reason'; reason.textContent = `${risk.reason}${item.value ? ` · ${money.format(item.value)}` : ''}`;
+    const action = document.createElement('p'); action.className = 'risk-action'; action.textContent = `Nächster Schritt: ${risk.action}`;
+    const buttons = document.createElement('div'); buttons.className = 'risk-buttons';
+    const copy = document.createElement('button'); copy.type = 'button'; copy.textContent = 'Text kopieren'; copy.addEventListener('click', () => copyFollowUp(item));
+    const open = document.createElement('button'); open.type = 'button'; open.textContent = 'Öffnen'; open.addEventListener('click', () => beginEdit(item));
+    buttons.append(copy, open); article.append(top, reason, action, buttons); return article;
+  }
   function card(item) {
     const article = document.createElement('article'); article.className = 'lead-card';
     const main = document.createElement('div'); main.className = 'lead-main';
     const top = document.createElement('div'); top.className = 'lead-top';
     const title = document.createElement('h3'); title.textContent = item.name;
     const pill = document.createElement('span'); pill.className = `status-pill ${item.status}`; pill.textContent = STATUSES[item.status];
-    top.append(title, pill); main.append(top);
+    top.append(title, pill);
+    const risk = riskFor(item);
+    if (risk.score >= 40) { const warning = document.createElement('span'); warning.className = `risk-badge ${risk.level}`; warning.textContent = `Risiko ${risk.score}`; top.append(warning); }
+    main.append(top);
     if (item.contact || item.channel) { const contact = document.createElement('p'); contact.className = 'lead-contact'; contact.textContent = [item.channel, item.contact].filter(Boolean).join(' · '); main.append(contact); }
     if (item.note) { const note = document.createElement('p'); note.className = 'lead-note'; note.textContent = item.note; main.append(note); }
     const meta = document.createElement('div'); meta.className = 'lead-meta';
@@ -146,6 +209,16 @@
   }
   function download(name, contents, type) {
     const url = URL.createObjectURL(new Blob([contents], { type })); const a = document.createElement('a'); a.href = url; a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+  async function copyFollowUp(item) {
+    const text = followUpMessage(item);
+    try {
+      if (navigator.clipboard?.writeText) await navigator.clipboard.writeText(text);
+      else {
+        const area = document.createElement('textarea'); area.value = text; area.style.position = 'fixed'; area.style.opacity = '0'; document.body.append(area); area.select(); document.execCommand('copy'); area.remove();
+      }
+      toast('Nachfass-Text wurde kopiert.');
+    } catch { toast('Text konnte nicht kopiert werden.', true); }
   }
   function backupName(extension) { return `entrotopia-anfragen-${todayLocal()}.${extension}`; }
   function updateNoteCount() { el('note-count').textContent = el('note').value.length; }
@@ -179,8 +252,8 @@
     } catch { toast('Diese Datei ist keine gültige ENTROTOPIA-Sicherung.', true); }
   });
   el('load-demo').addEventListener('click', () => {
-    const today = new Date(); const tomorrow = new Date(today); tomorrow.setDate(today.getDate() + 1);
-    leads = [normalizeLead({ name: 'Beispiel Schreinerei', channel: 'Telefon', contact: '0123 456789', status: 'callback', followUp: todayLocal(), value: 850, note: 'Rückruf wegen Einbauschrank. Maße und Termin klären.' }), normalizeLead({ name: 'Muster Hausverwaltung', channel: 'E-Mail', contact: 'beispiel@example.invalid', status: 'quote', followUp: todayLocal(tomorrow), value: 2400, note: 'Angebot für Reparatur versandt. Nur Beispieldaten.' })];
+    const today = new Date(); const yesterday = new Date(today); yesterday.setDate(today.getDate() - 1);
+    leads = [normalizeLead({ name: 'Beispiel Schreinerei', channel: 'Telefon', contact: '0123 456789', status: 'callback', followUp: todayLocal(), value: 850, note: 'Rückruf wegen Einbauschrank. Maße und Termin klären.' }), normalizeLead({ name: 'Muster Hausverwaltung', channel: 'E-Mail', contact: 'beispiel@example.invalid', status: 'quote', followUp: todayLocal(yesterday), value: 2400, note: 'Angebot für Reparatur versandt. Nur Beispieldaten.' })];
     save(); toast('Zwei Beispieldatensätze wurden geladen.');
   });
   window.addEventListener('online', updateConnection);

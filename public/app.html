@@ -17,7 +17,7 @@
 <body>
   <header class="topbar">
     <a class="brand" href="/">ENTROTOPIA</a>
-    <div class="toplinks"><span id="connection-state" class="connection online">Online</span><button id="install-app" class="install-button hidden" type="button">App installieren</button><a href="testphase.html">Vorlagen</a><span class="badge">BETA 0.3</span></div>
+    <div class="toplinks"><span id="connection-state" class="connection online">Online</span><button id="install-app" class="install-button hidden" type="button">App installieren</button><a href="testphase.html">Vorlagen</a><span class="badge">BETA 0.4</span></div>
   </header>
 
   <main>
@@ -32,9 +32,18 @@
 
     <section class="metrics" aria-label="Übersicht">
       <article><span>Offene Vorgänge</span><strong id="metric-open">0</strong></article>
-      <article><span>Heute fällig</span><strong id="metric-due">0</strong></article>
+      <article><span>Fällig oder überfällig</span><strong id="metric-due">0</strong></article>
       <article><span>Offener Wert</span><strong id="metric-value">0 €</strong></article>
       <article><span>Gewonnen</span><strong id="metric-won">0 €</strong></article>
+    </section>
+
+    <section class="risk-panel" aria-labelledby="risk-title">
+      <div class="risk-summary">
+        <div><p class="eyebrow">UMSATZVERLUST-WARNER</p><h2 id="risk-title">Heute zuerst erledigen</h2><p id="risk-summary">Noch keine gefährdeten Vorgänge.</p></div>
+        <div class="risk-value"><span>Gefährdeter Wert</span><strong id="risk-value">0 €</strong></div>
+      </div>
+      <div id="risk-list" class="risk-list" aria-live="polite"></div>
+      <div id="risk-empty" class="risk-empty"><strong>Alles im grünen Bereich.</strong><span>Neue oder fällige Vorgänge erscheinen automatisch hier.</span></div>
     </section>
 
     <section class="workspace">
@@ -75,8 +84,8 @@
         </div>
         <div class="toolbar">
           <label class="search"><span class="sr-only">Suchen</span><input id="search" type="search" placeholder="Name, Kontakt oder Notiz suchen"></label>
-          <label><span class="sr-only">Status filtern</span><select id="filter-status"><option value="all">Alle Status</option><option value="open">Nur offen</option><option value="due">Heute fällig</option><option value="new">Neu</option><option value="callback">Rückruf</option><option value="quote">Angebot</option><option value="won">Auftrag</option><option value="done">Abgeschlossen</option><option value="lost">Abgesagt</option></select></label>
-          <label><span class="sr-only">Sortierung</span><select id="sort"><option value="updated">Zuletzt geändert</option><option value="followUp">Nächste Wiedervorlage</option><option value="value">Höchster Wert</option><option value="name">Name A–Z</option></select></label>
+          <label><span class="sr-only">Status filtern</span><select id="filter-status"><option value="all">Alle Status</option><option value="risk">Umsatz gefährdet</option><option value="open">Nur offen</option><option value="due">Heute fällig</option><option value="new">Neu</option><option value="callback">Rückruf</option><option value="quote">Angebot</option><option value="won">Auftrag</option><option value="done">Abgeschlossen</option><option value="lost">Abgesagt</option></select></label>
+          <label><span class="sr-only">Sortierung</span><select id="sort"><option value="risk">Höchstes Risiko</option><option value="updated">Zuletzt geändert</option><option value="followUp">Nächste Wiedervorlage</option><option value="value">Höchster Wert</option><option value="name">Name A–Z</option></select></label>
         </div>
         <div id="lead-list" class="lead-list" aria-live="polite"></div>
         <div id="empty-state" class="empty hidden"><strong>Noch keine Interessenten.</strong><p>Lege links den ersten Vorgang an oder lade harmlose Beispieldaten.</p><button id="load-demo" class="secondary" type="button">Beispieldaten laden</button></div>
