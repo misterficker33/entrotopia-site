@@ -1,6 +1,6 @@
 'use strict';
 const assert = require('node:assert/strict');
-const { normalizeLead, stats, filterLeads, sortLeads, toCsv, riskFor, prioritizeRisks, followUpMessage, snoozeLead } = require('../public/app.js');
+const { normalizeLead, stats, filterLeads, sortLeads, toCsv, riskFor, prioritizeRisks, followUpMessage, snoozeLead, extractLead } = require('../public/app.js');
 
 const leads = [
   normalizeLead({ id: '1', name: 'Alpha', status: 'new', followUp: '2026-11-07', value: '1250,50', note: 'Fenster' }),
@@ -24,6 +24,13 @@ assert.equal(snoozed.followUp, '2026-11-10');
 assert.equal(snoozed.activityCount, 1);
 assert.equal(snoozed.lastActionAt, '2026-11-07T12:00:00.000Z');
 assert.equal(riskFor(snoozed, '2026-11-07').score, 35);
+const captured = extractLead('Hallo, ich bin Max Mustermann. Bitte Angebot über 1.500 €. E-Mail: max@example.de, Telefon 0123 456789.', '2026-11-07');
+assert.equal(captured.name, 'Max Mustermann');
+assert.equal(captured.channel, 'E-Mail');
+assert.equal(captured.contact, 'max@example.de');
+assert.equal(captured.value, 1500);
+assert.equal(captured.followUp, '2026-11-07');
+assert.match(captured.note, /Bitte Angebot/);
 assert.match(toCsv(leads), /"Alpha"/);
 assert.match(toCsv([normalizeLead({ name: 'A;B', note: 'Er sagt "ja"' })]), /"Er sagt ""ja"""/);
 console.log('app tests: ok');

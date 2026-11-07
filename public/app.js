@@ -83,6 +83,43 @@
     if (item.status === 'won') return 'Guten Tag, vielen Dank für Ihren Auftrag. Wir melden uns zur Abstimmung des nächsten Termins.';
     return 'Guten Tag, vielen Dank für Ihre Anfrage. Wir prüfen Ihr Anliegen und melden uns zeitnah bei Ihnen.';
   }
+  function moneyFromText(text) {
+    const match = String(text).match(/(\d[\d.\s]*(?:,\d{1,2})?)\s*(?:€|EUR)(?=\s|$|[.,;!?])/iu);
+    if (!match) return 0;
+    let number = match[1].replaceAll(' ', '');
+    if (number.includes(',')) number = number.replaceAll('.', '').replace(',', '.');
+    else if (/\.\d{3}(?:\.|$)/.test(number)) number = number.replaceAll('.', '');
+    return cleanMoney(number);
+  }
+  function nameFromText(text, email) {
+    const direct = String(text).match(/(?:mein name ist|ich bin|hier ist)\s+([\p{L}][\p{L}'’-]*(?:\s+[\p{L}][\p{L}'’-]*){0,3})/iu);
+    if (direct) return cleanText(direct[1], 100);
+    const company = String(text).match(/(?:firma|unternehmen)\s*[:\-]?\s*([^\n,.!?]{2,100})/iu);
+    if (company) return cleanText(company[1], 100);
+    const signature = String(text).match(/(?:viele grüße|freundliche grüße|beste grüße)[,\s]*(?:\r?\n)+\s*([^\n]{2,100})/iu);
+    if (signature) return cleanText(signature[1], 100);
+    if (email) {
+      const local = email.split('@')[0];
+      if (!/^(info|kontakt|mail|office|service|hallo)$/i.test(local)) return cleanText(local.replace(/[._-]+/g, ' ').replace(/\b\p{L}/gu, letter => letter.toLocaleUpperCase('de')), 100);
+    }
+    return '';
+  }
+  function extractLead(text, today = todayLocal()) {
+    const raw = cleanText(text, 3000);
+    const email = raw.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/iu)?.[0] || '';
+    const phone = raw.match(/(?:\+?\d)(?:[\s()/.-]*\d){6,}/u)?.[0]?.trim() || '';
+    const name = nameFromText(raw, email);
+    const value = moneyFromText(raw);
+    const whatsapp = /whats\s*app/iu.test(raw);
+    const channel = whatsapp ? 'WhatsApp' : email ? 'E-Mail' : phone ? 'Telefon' : 'Sonstiges';
+    const contact = email || phone;
+    const recognized = [];
+    if (name) recognized.push(`Name: ${name}`);
+    if (contact) recognized.push(`${channel}: ${contact}`);
+    if (value) recognized.push(`Wert: ${value.toLocaleString('de-DE')} €`);
+    recognized.push(`Wiedervorlage: heute`);
+    return { name, channel, contact, status: 'new', followUp: today, value, note: cleanText(raw, 1000), recognized };
+  }
   function stats(leads, today = todayLocal()) {
     const open = leads.filter(item => !CLOSED.has(item.status));
     return {
@@ -119,7 +156,7 @@
     return '\ufeff' + [headings, ...rows].map(row => row.map(csvCell).join(';')).join('\r\n');
   }
 
-  const api = { normalizeLead, todayLocal, stats, filterLeads, sortLeads, csvCell, toCsv, riskFor, prioritizeRisks, followUpMessage, snoozeLead, STATUSES };
+  const api = { normalizeLead, todayLocal, stats, filterLeads, sortLeads, csvCell, toCsv, riskFor, prioritizeRisks, followUpMessage, snoozeLead, extractLead, STATUSES };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   if (typeof document === 'undefined') return;
 
@@ -213,7 +250,7 @@
     el('form-title').textContent = 'Vorgang bearbeiten'; el('save-button').textContent = 'Änderungen speichern'; el('cancel-edit').classList.remove('hidden'); updateNoteCount(); el('editor').scrollIntoView({ behavior: 'smooth', block: 'start' }); el('name').focus({ preventScroll: true });
   }
   function resetForm() {
-    el('lead-form').reset(); el('lead-id').value = ''; el('form-title').textContent = 'Interessent anlegen'; el('save-button').textContent = 'Interessent speichern'; el('cancel-edit').classList.add('hidden'); updateNoteCount();
+    el('lead-form').reset(); el('lead-id').value = ''; el('form-title').textContent = 'Interessent anlegen'; el('save-button').textContent = 'Interessent speichern'; el('cancel-edit').classList.add('hidden'); el('capture-result').classList.add('hidden'); updateNoteCount();
   }
   function deleteLead(item) {
     if (!confirm(`„${item.name}“ wirklich löschen?`)) return;
@@ -245,6 +282,27 @@
     el('connection-state').textContent = online ? 'Online' : 'Offline';
     el('connection-state').className = `connection ${online ? 'online' : 'offline'}`;
   }
+  function applyCapture() {
+    const text = el('capture-text').value;
+    if (!text.trim()) { toast('Füge zuerst eine Kundenanfrage ein.', true); el('capture-text').focus(); return; }
+    const result = extractLead(text);
+    resetForm();
+    el('name').value = result.name;
+    el('channel').value = result.channel;
+    el('contact').value = result.contact;
+    el('status').value = result.status;
+    el('follow-up').value = result.followUp;
+    el('value').value = result.value || '';
+    el('note').value = result.note;
+    updateNoteCount();
+    const summary = el('capture-result'); summary.replaceChildren();
+    for (const value of result.recognized) { const chip = document.createElement('span'); chip.className = 'capture-chip'; chip.textContent = value; summary.append(chip); }
+    if (!result.name) { const chip = document.createElement('span'); chip.className = 'capture-chip'; chip.textContent = 'Name bitte ergänzen'; summary.append(chip); }
+    summary.classList.remove('hidden');
+    el('editor').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    toast('Angaben übernommen. Bitte prüfen und anschließend speichern.');
+    setTimeout(() => (result.name ? el('save-button') : el('name')).focus({ preventScroll: true }), 350);
+  }
 
   el('lead-form').addEventListener('submit', event => {
     event.preventDefault();
@@ -252,8 +310,13 @@
     const item = normalizeLead({ id, name: el('name').value, channel: el('channel').value, contact: el('contact').value, status: el('status').value, followUp: el('follow-up').value, value: el('value').value, note: el('note').value, lastActionAt: existing?.lastActionAt, activityCount: existing?.activityCount, createdAt: existing?.createdAt || now, updatedAt: now });
     if (!item.name) { toast('Bitte Name oder Firma eintragen.', true); return; }
     if (existing) leads = leads.map(entry => entry.id === id ? item : entry); else leads.unshift(item);
-    save(); resetForm(); toast(existing ? 'Änderungen gespeichert.' : 'Interessent angelegt.');
+    save(); if (!existing) el('capture-text').value = ''; resetForm(); toast(existing ? 'Änderungen gespeichert.' : 'Interessent angelegt.');
   });
+  el('capture-example').addEventListener('click', () => {
+    el('capture-text').value = 'Hallo, ich bin Max Mustermann. Wir benötigen eine Reparatur an zwei Fenstern. Bitte senden Sie uns ein Angebot über ungefähr 1.500 €. Sie erreichen mich unter max.mustermann@example.de oder 0123 456789. Viele Grüße, Max Mustermann';
+    el('capture-text').focus();
+  });
+  el('capture-analyze').addEventListener('click', applyCapture);
   el('cancel-edit').addEventListener('click', resetForm); el('note').addEventListener('input', updateNoteCount);
   ['search', 'filter-status', 'sort'].forEach(id => el(id).addEventListener(id === 'search' ? 'input' : 'change', render));
   el('export-csv').addEventListener('click', () => { if (!leads.length) return toast('Es gibt noch keine Daten zum Exportieren.', true); download(backupName('csv'), toCsv(leads), 'text/csv;charset=utf-8'); toast('CSV wurde erstellt.'); });

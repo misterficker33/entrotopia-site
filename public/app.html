@@ -17,7 +17,7 @@
 <body>
   <header class="topbar">
     <a class="brand" href="/">ENTROTOPIA</a>
-    <div class="toplinks"><span id="connection-state" class="connection online">Online</span><button id="install-app" class="install-button hidden" type="button">App installieren</button><a href="testphase.html">Vorlagen</a><span class="badge">BETA 0.5</span></div>
+    <div class="toplinks"><span id="connection-state" class="connection online">Online</span><button id="install-app" class="install-button hidden" type="button">App installieren</button><a href="testphase.html">Vorlagen</a><span class="badge">BETA 0.6</span></div>
   </header>
 
   <main>
@@ -28,6 +28,17 @@
         <p class="lead">Interessenten, Rückrufe und Angebote in einer einfachen Übersicht. Ohne Konto und ohne Cloud.</p>
       </div>
       <div class="privacy-note"><strong>Deine Daten bleiben hier.</strong><br>Die Einträge werden nur im Speicher dieses Browsers abgelegt. Nutze regelmäßig die Sicherung.</div>
+    </section>
+
+    <section class="capture-panel" aria-labelledby="capture-title">
+      <div class="capture-copy"><p class="eyebrow">SMART CAPTURE · LOKALE BETA</p><h2 id="capture-title">Kundenanfrage einfügen</h2><p>Füge eine E-Mail, Chatnachricht oder Gesprächsnotiz ein. ENTROTOPIA übernimmt erkannte Angaben in das Formular – gespeichert wird erst nach deiner Prüfung.</p></div>
+      <div class="capture-work">
+        <label for="capture-text" class="sr-only">Rohe Kundenanfrage</label>
+        <textarea id="capture-text" maxlength="3000" rows="6" placeholder="Beispiel: Hallo, ich bin Max Mustermann. Bitte senden Sie mir ein Angebot über etwa 1.500 €. Sie erreichen mich unter ..."></textarea>
+        <div class="capture-actions"><button id="capture-example" class="capture-secondary" type="button">Beispiel einsetzen</button><button id="capture-analyze" class="capture-primary" type="button">Angaben erkennen</button></div>
+        <div id="capture-result" class="capture-result hidden" role="status"></div>
+        <small>Die Erkennung läuft regelbasiert in deinem Browser. Der Text wird nicht hochgeladen.</small>
+      </div>
     </section>
 
     <section class="metrics" aria-label="Übersicht">
