@@ -80,6 +80,7 @@
   const dateFormat = new Intl.DateTimeFormat('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
   let leads = load();
   let toastTimer;
+  let installPrompt = null;
 
   function load() {
     try {
@@ -148,6 +149,11 @@
   }
   function backupName(extension) { return `entrotopia-anfragen-${todayLocal()}.${extension}`; }
   function updateNoteCount() { el('note-count').textContent = el('note').value.length; }
+  function updateConnection() {
+    const online = navigator.onLine;
+    el('connection-state').textContent = online ? 'Online' : 'Offline';
+    el('connection-state').className = `connection ${online ? 'online' : 'offline'}`;
+  }
 
   el('lead-form').addEventListener('submit', event => {
     event.preventDefault();
@@ -177,5 +183,19 @@
     leads = [normalizeLead({ name: 'Beispiel Schreinerei', channel: 'Telefon', contact: '0123 456789', status: 'callback', followUp: todayLocal(), value: 850, note: 'Rückruf wegen Einbauschrank. Maße und Termin klären.' }), normalizeLead({ name: 'Muster Hausverwaltung', channel: 'E-Mail', contact: 'beispiel@example.invalid', status: 'quote', followUp: todayLocal(tomorrow), value: 2400, note: 'Angebot für Reparatur versandt. Nur Beispieldaten.' })];
     save(); toast('Zwei Beispieldatensätze wurden geladen.');
   });
-  render(); updateNoteCount();
+  window.addEventListener('online', updateConnection);
+  window.addEventListener('offline', updateConnection);
+  window.addEventListener('beforeinstallprompt', event => {
+    event.preventDefault(); installPrompt = event; el('install-app').classList.remove('hidden');
+  });
+  el('install-app').addEventListener('click', async () => {
+    if (!installPrompt) return;
+    await installPrompt.prompt();
+    const choice = await installPrompt.userChoice;
+    installPrompt = null; el('install-app').classList.add('hidden');
+    if (choice.outcome === 'accepted') toast('ENTROTOPIA wird installiert.');
+  });
+  window.addEventListener('appinstalled', () => { installPrompt = null; el('install-app').classList.add('hidden'); toast('ENTROTOPIA wurde installiert.'); });
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => toast('Offline-Modus konnte nicht aktiviert werden.', true));
+  render(); updateNoteCount(); updateConnection();
 })(typeof globalThis !== 'undefined' ? globalThis : this);

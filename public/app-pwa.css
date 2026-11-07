@@ -1,0 +1,6 @@
+.connection{font-size:11px;font-weight:850;letter-spacing:.05em;padding:5px 8px;border-radius:999px;border:1px solid var(--line)}
+.connection.online{color:var(--green)}
+.connection.offline{color:#10192a;background:var(--gold);border-color:var(--gold)}
+.install-button{border:1px solid #5b77a1;background:#172944;color:#dce8ff;border-radius:8px;padding:7px 10px;font-weight:850;cursor:pointer}
+.install-button:hover{background:#203858}
+@media(max-width:700px){.connection{display:none}.install-button{font-size:12px}.toplinks{gap:9px}}

@@ -1,0 +1,20 @@
+{
+  "id": "/public/app.html",
+  "name": "ENTROTOPIA Anfrageboard",
+  "short_name": "ENTROTOPIA",
+  "description": "Interessenten, Rückrufe, Angebote und Wiedervorlagen lokal verwalten.",
+  "lang": "de",
+  "start_url": "/public/app.html",
+  "scope": "/public/",
+  "display": "standalone",
+  "background_color": "#080e19",
+  "theme_color": "#080e19",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

@@ -6,14 +6,18 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
   <meta name="description" content="ENTROTOPIA Anfrageboard: Interessenten, Rückrufe, Angebote und nächste Schritte lokal im Browser verwalten.">
   <meta name="robots" content="noindex,nofollow">
+  <meta name="theme-color" content="#080e19">
   <title>Anfrageboard Beta | ENTROTOPIA</title>
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="manifest" href="manifest.webmanifest">
   <link rel="stylesheet" href="app.css">
+  <link rel="stylesheet" href="app-pwa.css">
   <script src="app.js" defer></script>
 </head>
 <body>
   <header class="topbar">
     <a class="brand" href="/">ENTROTOPIA</a>
-    <div class="toplinks"><a href="testphase.html">Vorlagen</a><span class="badge">BETA 0.2</span></div>
+    <div class="toplinks"><span id="connection-state" class="connection online">Online</span><button id="install-app" class="install-button hidden" type="button">App installieren</button><a href="testphase.html">Vorlagen</a><span class="badge">BETA 0.3</span></div>
   </header>
 
   <main>
