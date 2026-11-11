@@ -10,5 +10,5 @@ directory = "./public"
 [[d1_databases]]
 binding = "DB"
 database_name = "entrotopia-db"
-database_id = "5389b572-10f5-4ee2-9cac-f99d199280bc"
+database_id = "DEINE_D1_DATABASE_ID_HIER_EINTRAGEN"
 migrations_dir = "migrations"
